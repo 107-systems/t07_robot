@@ -31,4 +31,4 @@ ros2 launch t07_ros t07.py
 |     Name      | Default | Description               |
 |:-------------:|:-------:|---------------------------|
 | `can_iface`   | `can0`  | Network name of CAN bus.  |
-| 'can_node_id' |   100   | Cyphal/CAN node id.       |
+| `can_node_id` |   100   | Cyphal/CAN node id.       |
