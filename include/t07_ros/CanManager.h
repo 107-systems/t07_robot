@@ -1,22 +1,23 @@
 /**
- * Copyright (c) 2023 LXRobotics GmbH.
+ * Copyright (c) 2022 LXRobotics GmbH.
  * Author: Alexander Entinger <alexander.entinger@lxrobotics.com>
- * Contributors: https://github.com/107-systems/t07_ros/graphs/contributors.
+ * Contributors: https://github.com/107-systems/ros2_cyphal_bridge/graphs/contributors.
  */
 
 #pragma once
 
 /**************************************************************************************
- * INCLUDE
+ * INCLUDES
  **************************************************************************************/
 
-#include <memory>
+#include <socketcan.h>
+
+#include <string>
+#include <thread>
+#include <atomic>
+#include <functional>
 
 #include <rclcpp/rclcpp.hpp>
-
-#include <cyphal++/cyphal++.h>
-
-#include "CanManager.h"
 
 /**************************************************************************************
  * NAMESPACE
@@ -29,25 +30,30 @@ namespace t07
  * CLASS DECLARATION
  **************************************************************************************/
 
-class Node : public rclcpp::Node
+class CanManager
 {
 public:
-   Node();
-  ~Node();
+  typedef std::function<void(CanardFrame const &)> OnCanFrameReceivedFunc;
+
+  CanManager(rclcpp::Logger const logger,
+             std::string const & iface_name,
+             OnCanFrameReceivedFunc on_can_frame_received);
+  ~CanManager();
+
+
+  bool transmit(CanardFrame const & frame);
+
 
 private:
-  static size_t constexpr CYPHAL_O1HEAP_SIZE = (cyphal::Node::DEFAULT_O1HEAP_SIZE * 16);
-  static size_t constexpr CYPHAL_TX_QUEUE_SIZE = 256;
-  static size_t constexpr CYPHAL_RX_QUEUE_SIZE = 256;
-  cyphal::Node::Heap<CYPHAL_O1HEAP_SIZE> _node_heap;
-  cyphal::Node _node_hdl;
-  std::mutex _node_mtx;
+  rclcpp::Logger const _logger;
+  std::string const IFACE_NAME;
+  bool const IS_CAN_FD;
+  int _socket_can_fd;
+  OnCanFrameReceivedFunc _on_can_frame_received;
 
-  std::chrono::steady_clock::time_point const _node_start;
-
-  std::unique_ptr<CanManager> _can_mgr;
-
-  CanardMicrosecond micros();
+  std::atomic<bool> _rx_thread_active;
+  std::thread _rx_thread;
+  void rx_thread_func();
 };
 
 /**************************************************************************************
