@@ -42,10 +42,16 @@ private:
   cyphal::Node::Heap<CYPHAL_O1HEAP_SIZE> _node_heap;
   cyphal::Node _node_hdl;
   std::mutex _node_mtx;
-
   std::chrono::steady_clock::time_point const _node_start;
-
   std::unique_ptr<CanManager> _can_mgr;
+
+  cyphal::Publisher<uavcan::node::Heartbeat_1_0> _cyphal_heartbeat_pub;
+  std::chrono::steady_clock::time_point _prev_heartbeat_timepoint;
+  static std::chrono::milliseconds constexpr CYPHAL_HEARTBEAT_PERIOD{1000};
+  void init_cyphal_heartbeat();
+
+  cyphal::NodeInfo _cyphal_node_info;
+  void init_cyphal_node_info();
 
   CanardMicrosecond micros();
 };
