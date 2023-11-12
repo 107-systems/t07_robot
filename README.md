@@ -1,8 +1,8 @@
 <a href="https://107-systems.org/"><img align="right" src="https://raw.githubusercontent.com/107-systems/.github/main/logo/107-systems.png" width="15%"></a>
 :floppy_disk: `t07_ros`
 =======================
-[![Build Status](https://github.com/107-systems/l3xz_joy/actions/workflows/ros2.yml/badge.svg)](https://github.com/107-systems/l3xz_joy/actions/workflows/ros2.yml)
-[![Spell Check status](https://github.com/107-systems/l3xz_joy/actions/workflows/spell-check.yml/badge.svg)](https://github.com/107-systems/l3xz_joy/actions/workflows/spell-check.yml)
+[![Build Status](https://github.com/107-systems/t07_ros/actions/workflows/ros2.yml/badge.svg)](https://github.com/107-systems/t07_ros/actions/workflows/ros2.yml)
+[![Spell Check status](https://github.com/107-systems/t07_ros/actions/workflows/spell-check.yml/badge.svg)](https://github.com/107-systems/t07_ros/actions/workflows/spell-check.yml)
 
 ROS control code for the [T07](https://github.com/107-systems/T07) robot.
 
