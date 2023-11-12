@@ -74,7 +74,9 @@ jobs:
     - uses: actions/checkout@v4
       with:
         path: 'ros2_ws/src/t07_ros'
-        
+        submodules: true
+        fetch-depth: 1
+
     - name: colcon build
       run: |
         source /opt/ros/${{ matrix.ros_distro }}/setup.bash
