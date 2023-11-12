@@ -27,8 +27,22 @@ ros2 launch t07_ros t07.py
 | Default name |                                      Type                                      |
 |:------------:|:------------------------------------------------------------------------------:|
 
+##### Subscribed Topics
+|     Default name      |        Type         | Description                  |
+|:---------------------:|:-------------------:|------------------------------|
+| `/motor/left/target`  | `std_msgs/Float32`  | Motor left set-point in m/s  | 
+| `/motor/right/target` | `std_msgs/Float32`  | Motor right set-point in m/s |
+
 ##### Parameters
-|     Name      | Default | Description               |
-|:-------------:|:-------:|---------------------------|
-| `can_iface`   | `can0`  | Network name of CAN bus.  |
-| `can_node_id` |   100   | Cyphal/CAN node id.       |
+|                      Name                      |       Default        | Description                                                             |
+|:----------------------------------------------:|:--------------------:|-------------------------------------------------------------------------|
+|                  `can_iface`                   |        `can0`        | Network name of CAN bus.                                                |
+|                 `can_node_id`                  |         100          | Cyphal/CAN node id.                                                     |
+|               `motor_left_topic`               | `motor/left/target`  |                                                                         |
+|         `motor_left_topic_deadline_ms`         |         100          |                                                                         |
+|  `motor_left_topic_liveliness_lease_duration`  |         1000         |                                                                         | 
+|            `motor_left_pwm_port_id`            |         600          | Cyphal port ID for CyphalRobotController/CAN motor left PWM messages.   |
+|              `motor_right_topic`               | `motor/right/target` |                                                                         |
+|        `motor_right_topic_deadline_ms`         |         100          |                                                                         |
+| `motor_right_topic_liveliness_lease_duration`  |         1000         |                                                                         | 
+|           `motor_right_pwm_port_id`            |         600          | Cyphal port ID for CyphalRobotController/CAN motor right PWM messages.  |
