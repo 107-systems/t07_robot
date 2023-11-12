@@ -13,6 +13,10 @@ def generate_launch_description():
       parameters=[
         {'can_iface' : 'can0'},
         {'can_node_id' : 100},
+        {'motor_left_topic': '/motor/left/target'},
+        {'motor_left_topic_deadline_ms': 100},
+        {'motor_left_topic_liveliness_lease_duration': 1000},
+        {'motor_left_pwm_port_id': 600},
       ]
     )
   ])

@@ -14,13 +14,21 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include <std_msgs/msg/float32.hpp>
+
 #include <cyphal++/cyphal++.h>
+
+#include <mp-units/systems/si/si.h>
 
 #include "CanManager.h"
 
 /**************************************************************************************
  * NAMESPACE
  **************************************************************************************/
+
+using namespace mp_units;
+using mp_units::si::unit_symbols::m;
+using mp_units::si::unit_symbols::s;
 
 namespace t07
 {
@@ -54,6 +62,17 @@ private:
   void init_cyphal_node_info();
 
   CanardMicrosecond micros();
+
+  static std::chrono::milliseconds constexpr CTRL_LOOP_RATE{10};
+
+  rclcpp::QoS _motor_left_qos_profile;
+  rclcpp::SubscriptionOptions _motor_left_sub_options;
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr _motor_left_sub;
+  quantity<m/s> _motor_left_target;
+  cyphal::Publisher<uavcan::primitive::scalar::Integer16_1_0> _motor_left_pwm_pub;
+  rclcpp::TimerBase::SharedPtr _motor_left_ctrl_loop_timer;
+  void init_motor_left();
+  void motor_left_ctrl_loop();
 };
 
 /**************************************************************************************

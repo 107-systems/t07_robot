@@ -11,6 +11,8 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(mp-units REQUIRED)
 ##########################################################################
 add_subdirectory(external/107-Arduino-Cyphal)
 add_subdirectory(external/libsocketcan)
@@ -29,8 +31,8 @@ target_link_libraries(${T07_ROS_TARGET}
   cyphal++ socketcan
 )
 #######################################################################################
-target_compile_features(${T07_ROS_TARGET} PRIVATE cxx_std_17)
-ament_target_dependencies(${T07_ROS_TARGET} rclcpp)
+target_compile_features(${T07_ROS_TARGET} PRIVATE cxx_std_20)
+ament_target_dependencies(${T07_ROS_TARGET} rclcpp std_msgs mp-units)
 #######################################################################################
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
