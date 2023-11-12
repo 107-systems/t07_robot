@@ -40,6 +40,12 @@ Node::Node()
   rmw_qos_profile_sensor_data
 }
 , _motor_left_target{0. * m/s}
+, _motor_right_qos_profile
+{
+  rclcpp::KeepLast(1),
+  rmw_qos_profile_sensor_data
+}
+, _motor_right_target{0. * m/s}
 {
   init_cyphal_heartbeat();
   init_cyphal_node_info();
@@ -64,6 +70,7 @@ Node::Node()
     });
 
   init_motor_left();
+  init_motor_right();
 
   RCLCPP_INFO(get_logger(), "%s init complete.", get_name());
 }
@@ -172,6 +179,71 @@ void Node::motor_left_ctrl_loop()
   {
     std::lock_guard <std::mutex> lock(_node_mtx);
     _motor_left_pwm_pub->publish(pwm_left_msg);
+    _node_hdl.spinSome();
+  }
+}
+
+void Node::init_motor_right()
+{
+  declare_parameter("motor_right_topic", "/motor/right/target");
+  declare_parameter("motor_right_topic_deadline_ms", 100);
+  declare_parameter("motor_right_topic_liveliness_lease_duration", 1000);
+  declare_parameter("motor_right_pwm_port_id", 600);
+
+  auto const motor_right_topic = get_parameter("motor_right_topic").as_string();
+  auto const motor_right_topic_deadline = std::chrono::milliseconds(get_parameter("motor_right_topic_deadline_ms").as_int());
+  auto const motor_right_topic_liveliness_lease_duration = std::chrono::milliseconds(get_parameter("motor_right_topic_liveliness_lease_duration").as_int());
+
+  _motor_right_qos_profile.deadline(motor_right_topic_deadline);
+  _motor_right_qos_profile.liveliness(RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC);
+  _motor_right_qos_profile.liveliness_lease_duration(motor_right_topic_liveliness_lease_duration);
+
+  _motor_right_sub_options.event_callbacks.deadline_callback =
+    [this, motor_right_topic](rclcpp::QOSDeadlineRequestedInfo & /* event */) -> void
+    {
+      _motor_right_target = 0. * m/s;
+      RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(),5*1000UL,
+                            "deadline missed for \"%s\", limiting _motor_right_target to %f m/s.",
+                            motor_right_topic.c_str(), _motor_right_target.numerical_value_in(m/s));
+    };
+
+  _motor_right_sub_options.event_callbacks.liveliness_callback =
+    [this, motor_right_topic](rclcpp::QOSLivelinessChangedInfo & event) -> void
+    {
+      if (event.alive_count == 0)
+      {
+        _motor_right_target = 0. * m/s;
+        RCLCPP_ERROR(get_logger(),
+                     "liveliness lost for \"%s\", limiting _motor_right_target to %f m/s",
+                     motor_right_topic.c_str(), _motor_right_target.numerical_value_in(m/s));
+      }
+    };
+
+  _motor_right_sub = create_subscription<std_msgs::msg::Float32>(
+    motor_right_topic,
+    _motor_right_qos_profile,
+    [this](std_msgs::msg::Float32::SharedPtr const msg) { _motor_right_target = static_cast<double>(msg->data) * m/s; },
+    _motor_right_sub_options
+  );
+
+  _motor_right_pwm_pub = _node_hdl.create_publisher<uavcan::primitive::scalar::Integer16_1_0>(get_parameter("motor_right_pwm_port_id").as_int(), 1*1000*1000UL);
+
+  _motor_right_ctrl_loop_timer = create_wall_timer(CTRL_LOOP_RATE, [this]() { this->motor_right_ctrl_loop(); });
+}
+
+void Node::motor_right_ctrl_loop()
+{
+  if (_motor_right_target > 1. * m/s)
+    _motor_right_target = 1. * m/s;
+
+  int16_t const motor_right_pwm_value = _motor_right_target.numerical_value_in(m/s) * 100;
+
+  uavcan::primitive::scalar::Integer16_1_0 pwm_right_msg;
+  pwm_right_msg.value = motor_right_pwm_value;
+
+  {
+    std::lock_guard <std::mutex> lock(_node_mtx);
+    _motor_right_pwm_pub->publish(pwm_right_msg);
     _node_hdl.spinSome();
   }
 }

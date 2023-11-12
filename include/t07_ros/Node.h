@@ -73,6 +73,15 @@ private:
   rclcpp::TimerBase::SharedPtr _motor_left_ctrl_loop_timer;
   void init_motor_left();
   void motor_left_ctrl_loop();
+
+  rclcpp::QoS _motor_right_qos_profile;
+  rclcpp::SubscriptionOptions _motor_right_sub_options;
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr _motor_right_sub;
+  quantity<m/s> _motor_right_target;
+  cyphal::Publisher<uavcan::primitive::scalar::Integer16_1_0> _motor_right_pwm_pub;
+  rclcpp::TimerBase::SharedPtr _motor_right_ctrl_loop_timer;
+  void init_motor_right();
+  void motor_right_ctrl_loop();
 };
 
 /**************************************************************************************
