@@ -73,7 +73,7 @@ jobs:
         
     - uses: actions/checkout@v4
       with:
-        path: 'ros2_ws/src/t07_ros'
+        path: 'ros2_ws/src/t07_robot'
         submodules: true
         fetch-depth: 1
 

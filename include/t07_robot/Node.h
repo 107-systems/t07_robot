@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2023 LXRobotics GmbH.
  * Author: Alexander Entinger <alexander.entinger@lxrobotics.com>
- * Contributors: https://github.com/107-systems/t07_ros/graphs/contributors.
+ * Contributors: https://github.com/107-systems/t07_robot/graphs/contributors.
  */
 
 #pragma once

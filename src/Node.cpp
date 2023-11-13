@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2023 LXRobotics GmbH.
  * Author: Alexander Entinger <alexander.entinger@lxrobotics.com>
- * Contributors: https://github.com/107-systems/t07_ros/graphs/contributors.
+ * Contributors: https://github.com/107-systems/t07_robot/graphs/contributors.
  */
 
 /**************************************************************************************
  * INCLUDE
  **************************************************************************************/
 
-#include <t07_ros/Node.h>
+#include <t07_robot/Node.h>
 
 /**************************************************************************************
  * NAMESPACE
@@ -22,7 +22,7 @@ namespace t07
  **************************************************************************************/
 
 Node::Node()
-: rclcpp::Node("t07_ros_node")
+: rclcpp::Node("t07_robot_node")
 , _node_heap{}
 , _node_hdl{_node_heap.data(),
             _node_heap.size(),

@@ -4,9 +4,9 @@ from launch_ros.actions import Node
 def generate_launch_description():
   return LaunchDescription([
     Node(
-      package='t07_ros',
-      executable='t07_ros_node',
-      name='t07_ros',
+      package='t07_robot',
+      executable='t07_robot_node',
+      name='t07_robot',
       namespace='t07',
       output='screen',
       emulate_tty=True,
