@@ -48,9 +48,6 @@ Node::Node()
 }
 , _motor_right_target{0. * m/s}
 {
-  init_cyphal_heartbeat();
-  init_cyphal_node_info();
-
   declare_parameter("can_iface", "can0");
   declare_parameter("can_node_id", 100);
 
@@ -70,33 +67,13 @@ Node::Node()
       _node_hdl.onCanFrameReceived(frame);
     });
 
+  init_cyphal_heartbeat();
+  init_cyphal_node_info();
+
+  _io_loop_timer = create_wall_timer(IO_LOOP_RATE, [this]() { this->io_loop(); });
+
   init_motor_left();
   init_motor_right();
-
-  _io_loop_timer = create_wall_timer(IO_LOOP_RATE,
-                                     [this]()
-                                     {
-                                       std::lock_guard <std::mutex> lock(_node_mtx);
-
-                                       _node_hdl.spinSome();
-
-                                       auto const now = std::chrono::steady_clock::now();
-
-                                       if ((now - _prev_heartbeat_timepoint) > CYPHAL_HEARTBEAT_PERIOD)
-                                       {
-                                         uavcan::node::Heartbeat_1_0 msg;
-
-                                         msg.uptime = std::chrono::duration_cast<std::chrono::seconds>(now - _node_start).count();
-                                         msg.health.value = uavcan::node::Health_1_0::NOMINAL;
-                                         msg.mode.value = uavcan::node::Mode_1_0::OPERATIONAL;
-                                         msg.vendor_specific_status_code = 0;
-
-                                         _cyphal_heartbeat_pub->publish(msg);
-
-                                         _prev_heartbeat_timepoint = now;
-                                       }
-                                     });
-
 
   RCLCPP_INFO(get_logger(), "%s init complete.", get_name());
 }
@@ -109,6 +86,29 @@ Node::~Node()
 /**************************************************************************************
  * PRIVATE MEMBER FUNCTIONS
  **************************************************************************************/
+
+void Node::io_loop()
+{
+  std::lock_guard <std::mutex> lock(_node_mtx);
+
+  _node_hdl.spinSome();
+
+  auto const now = std::chrono::steady_clock::now();
+
+  if ((now - _prev_heartbeat_timepoint) > CYPHAL_HEARTBEAT_PERIOD)
+  {
+    uavcan::node::Heartbeat_1_0 msg;
+
+    msg.uptime = std::chrono::duration_cast<std::chrono::seconds>(now - _node_start).count();
+    msg.health.value = uavcan::node::Health_1_0::NOMINAL;
+    msg.mode.value = uavcan::node::Mode_1_0::OPERATIONAL;
+    msg.vendor_specific_status_code = 0;
+
+    _cyphal_heartbeat_pub->publish(msg);
+
+    _prev_heartbeat_timepoint = now;
+  }
+}
 
 void Node::init_cyphal_heartbeat()
 {

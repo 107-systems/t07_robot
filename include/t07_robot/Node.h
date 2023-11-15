@@ -53,6 +53,10 @@ private:
   std::chrono::steady_clock::time_point const _node_start;
   std::unique_ptr<CanManager> _can_mgr;
 
+  static std::chrono::milliseconds constexpr IO_LOOP_RATE{1};
+  rclcpp::TimerBase::SharedPtr _io_loop_timer;
+  void io_loop();
+
   cyphal::Publisher<uavcan::node::Heartbeat_1_0> _cyphal_heartbeat_pub;
   std::chrono::steady_clock::time_point _prev_heartbeat_timepoint;
   static std::chrono::milliseconds constexpr CYPHAL_HEARTBEAT_PERIOD{1000};
@@ -82,9 +86,6 @@ private:
   rclcpp::TimerBase::SharedPtr _motor_right_ctrl_loop_timer;
   void init_motor_right();
   void motor_right_ctrl_loop();
-
-  static std::chrono::milliseconds constexpr IO_LOOP_RATE{1};
-  rclcpp::TimerBase::SharedPtr _io_loop_timer;
 };
 
 /**************************************************************************************
