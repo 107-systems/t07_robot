@@ -178,6 +178,10 @@ void Node::init_motor_left()
                      "liveliness lost for \"%s\", limiting _motor_left_target to %f m/s",
                      motor_left_topic.c_str(), _motor_left_target.numerical_value_in(m/s));
       }
+      else
+      {
+        RCLCPP_INFO(get_logger(), "liveliness gained for \"%s\"", motor_left_topic.c_str());
+      }
     };
 
   _motor_left_sub = create_subscription<std_msgs::msg::Float32>(
@@ -241,6 +245,10 @@ void Node::init_motor_right()
         RCLCPP_ERROR(get_logger(),
                      "liveliness lost for \"%s\", limiting _motor_right_target to %f m/s",
                      motor_right_topic.c_str(), _motor_right_target.numerical_value_in(m/s));
+      }
+      else
+      {
+        RCLCPP_INFO(get_logger(), "liveliness gained for \"%s\"", motor_right_topic.c_str());
       }
     };
 
