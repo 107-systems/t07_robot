@@ -82,6 +82,9 @@ private:
   rclcpp::TimerBase::SharedPtr _motor_right_ctrl_loop_timer;
   void init_motor_right();
   void motor_right_ctrl_loop();
+
+  static std::chrono::milliseconds constexpr IO_LOOP_RATE{1};
+  rclcpp::TimerBase::SharedPtr _io_loop_timer;
 };
 
 /**************************************************************************************
