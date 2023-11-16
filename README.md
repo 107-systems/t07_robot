@@ -8,7 +8,6 @@ ROS control code for the [T07](https://github.com/107-systems/T07) robot.
 
 #### How-to-build
 Note: Don't forget to install the [dependencies](https://github.com/107-systems/t07_robot#install-dependencies).
-
 ```bash
 cd $COLCON_WS/src
 git clone --recursive https://github.com/107-systems/t07_robot
