@@ -34,7 +34,6 @@ Node::Node()
             cyphal::Node::DEFAULT_MTU_SIZE}
 , _node_mtx{}
 , _node_start{std::chrono::steady_clock::now()}
-, _prev_heartbeat_timepoint{std::chrono::steady_clock::now()}
 , _motor_left_qos_profile
 {
   rclcpp::KeepLast(1),
@@ -90,29 +89,30 @@ Node::~Node()
 void Node::io_loop()
 {
   std::lock_guard <std::mutex> lock(_node_mtx);
-
   _node_hdl.spinSome();
-
-  auto const now = std::chrono::steady_clock::now();
-
-  if ((now - _prev_heartbeat_timepoint) > CYPHAL_HEARTBEAT_PERIOD)
-  {
-    uavcan::node::Heartbeat_1_0 msg;
-
-    msg.uptime = std::chrono::duration_cast<std::chrono::seconds>(now - _node_start).count();
-    msg.health.value = uavcan::node::Health_1_0::NOMINAL;
-    msg.mode.value = uavcan::node::Mode_1_0::OPERATIONAL;
-    msg.vendor_specific_status_code = 0;
-
-    _cyphal_heartbeat_pub->publish(msg);
-
-    _prev_heartbeat_timepoint = now;
-  }
 }
 
 void Node::init_cyphal_heartbeat()
 {
   _cyphal_heartbeat_pub = _node_hdl.create_publisher<uavcan::node::Heartbeat_1_0>(1*1000*1000UL /* = 1 sec in usecs. */);
+
+  _cyphal_heartbeat_timer = create_wall_timer(CYPHAL_HEARTBEAT_PERIOD,
+                                              [this]()
+                                              {
+                                                uavcan::node::Heartbeat_1_0 msg;
+
+                                                auto const now = std::chrono::steady_clock::now();
+
+                                                msg.uptime = std::chrono::duration_cast<std::chrono::seconds>(now - _node_start).count();
+                                                msg.health.value = uavcan::node::Health_1_0::NOMINAL;
+                                                msg.mode.value = uavcan::node::Mode_1_0::OPERATIONAL;
+                                                msg.vendor_specific_status_code = 0;
+
+                                                {
+                                                  std::lock_guard <std::mutex> lock(_node_mtx);
+                                                  _cyphal_heartbeat_pub->publish(msg);
+                                                }
+                                              });
 }
 
 void Node::init_cyphal_node_info()

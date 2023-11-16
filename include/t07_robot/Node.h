@@ -58,8 +58,8 @@ private:
   void io_loop();
 
   cyphal::Publisher<uavcan::node::Heartbeat_1_0> _cyphal_heartbeat_pub;
-  std::chrono::steady_clock::time_point _prev_heartbeat_timepoint;
   static std::chrono::milliseconds constexpr CYPHAL_HEARTBEAT_PERIOD{1000};
+  rclcpp::TimerBase::SharedPtr _cyphal_heartbeat_timer;
   void init_cyphal_heartbeat();
 
   cyphal::NodeInfo _cyphal_node_info;
