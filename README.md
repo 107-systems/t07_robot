@@ -7,37 +7,8 @@
 ROS control code for the [T07](https://github.com/107-systems/T07) robot.
 
 #### How-to-build
-* Install `gsl-lite`
-```bash
-git clone https://github.com/gsl-lite/gsl-lite && cd gsl-lite
-mkdir build && cd build
-cmake .. && make -j8
-sudo make install
-```
-* Install `Catch2`
-```bash
-git clone https://github.com/catchorg/Catch2 && cd Catch2
-mkdir build && cd build
-cmake .. && make -j8
-sudo make install
-```
-* Install `fmt`
-```bash
-git clone https://github.com/fmtlib/fmt && cd fmt
-mkdir build && cd build
-cmake -DFMT_TEST=OFF ..
-make -j8
-sudo make install
-```
-* Install `mp-units`
-```bash
-git clone https://github.com/mpusz/mp-units && cd mp-units
-mkdir build && cd build
-cmake -DMP_UNITS_AS_SYSTEM_HEADERS=ON -DMP_UNITS_BUILD_LA=OFF ..
-make -j8
-sudo make install
-```
-* Build with `colcon`
+Note: Don't forget to install the [dependencies](https://github.com/107-systems/t07_robot#install-dependencies).
+
 ```bash
 cd $COLCON_WS/src
 git clone --recursive https://github.com/107-systems/t07_robot
@@ -77,3 +48,35 @@ ros2 launch t07_robot robot.py
 |        `motor_right_topic_deadline_ms`         |         100          |                                                                         |
 | `motor_right_topic_liveliness_lease_duration`  |         1000         |                                                                         | 
 |           `motor_right_pwm_port_id`            |         600          | Cyphal port ID for CyphalRobotController/CAN motor right PWM messages.  |
+
+#### Install dependencies
+* Install `gsl-lite`
+```bash
+git clone https://github.com/gsl-lite/gsl-lite && cd gsl-lite
+mkdir build && cd build
+cmake .. && make -j8
+sudo make install
+```
+* Install `Catch2`
+```bash
+git clone https://github.com/catchorg/Catch2 && cd Catch2
+mkdir build && cd build
+cmake .. && make -j8
+sudo make install
+```
+* Install `fmt`
+```bash
+git clone https://github.com/fmtlib/fmt && cd fmt
+mkdir build && cd build
+cmake -DFMT_TEST=OFF ..
+make -j8
+sudo make install
+```
+* Install `mp-units`
+```bash
+git clone https://github.com/mpusz/mp-units && cd mp-units
+mkdir build && cd build
+cmake -DMP_UNITS_AS_SYSTEM_HEADERS=ON -DMP_UNITS_BUILD_LA=OFF ..
+make -j8
+sudo make install
+```
