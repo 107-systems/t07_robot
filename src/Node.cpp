@@ -66,10 +66,15 @@ Node::Node()
       _node_hdl.onCanFrameReceived(frame);
     });
 
+  _node_loop_timer = create_wall_timer(NODE_LOOP_RATE,
+                                       [this]()
+                                       {
+                                         std::lock_guard <std::mutex> lock(_node_mtx);
+                                         _node_hdl.spinSome();
+                                       });
+
   init_cyphal_heartbeat();
   init_cyphal_node_info();
-
-  _io_loop_timer = create_wall_timer(IO_LOOP_RATE, [this]() { this->io_loop(); });
 
   init_motor_left();
   init_motor_right();
@@ -85,12 +90,6 @@ Node::~Node()
 /**************************************************************************************
  * PRIVATE MEMBER FUNCTIONS
  **************************************************************************************/
-
-void Node::io_loop()
-{
-  std::lock_guard <std::mutex> lock(_node_mtx);
-  _node_hdl.spinSome();
-}
 
 void Node::init_cyphal_heartbeat()
 {
