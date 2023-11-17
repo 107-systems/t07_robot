@@ -11,10 +11,10 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(mp-units REQUIRED)
 ##########################################################################
 add_subdirectory(external/107-Arduino-Cyphal)
 add_subdirectory(external/libsocketcan)
+add_subdirectory(external/mp-units/src)
 #######################################################################################
 include_directories(
   include
@@ -27,11 +27,11 @@ add_executable(${T07_ROBOT_TARGET}
 )
 #######################################################################################
 target_link_libraries(${T07_ROBOT_TARGET}
-  cyphal++ socketcan
+  cyphal++ socketcan mp-units
 )
 #######################################################################################
 target_compile_features(${T07_ROBOT_TARGET} PRIVATE cxx_std_20)
-ament_target_dependencies(${T07_ROBOT_TARGET} rclcpp std_msgs mp-units)
+ament_target_dependencies(${T07_ROBOT_TARGET} rclcpp std_msgs)
 #######################################################################################
 install(TARGETS
         ${T07_ROBOT_TARGET}
