@@ -56,6 +56,7 @@ bool CanManager::transmit(CanardFrame const & frame)
 
   if (rc < 0) {
     RCLCPP_ERROR(_logger, "'socketcanPush' failed with error %s.", strerror(abs(rc)));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     return false;
   }
 
