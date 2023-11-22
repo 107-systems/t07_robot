@@ -73,7 +73,7 @@ Node::Node()
                                          _node_hdl.spinSome();
                                        });
 
-  init_cyphal_heartbeat();
+//  init_cyphal_heartbeat();
   init_cyphal_node_info();
 
   init_motor_left();
