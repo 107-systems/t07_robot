@@ -206,8 +206,8 @@ void Node::motor_left_ctrl_loop()
   pwm_left_msg.value = motor_left_pwm_value;
 
   {
-    std::lock_guard <std::mutex> lock(_node_mtx);
-    _motor_left_pwm_pub->publish(pwm_left_msg);
+    //std::lock_guard <std::mutex> lock(_node_mtx);
+    //_motor_left_pwm_pub->publish(pwm_left_msg);
   }
 }
 
@@ -274,8 +274,8 @@ void Node::motor_right_ctrl_loop()
   pwm_right_msg.value = motor_right_pwm_value;
 
   {
-    std::lock_guard <std::mutex> lock(_node_mtx);
-    _motor_right_pwm_pub->publish(pwm_right_msg);
+//    std::lock_guard <std::mutex> lock(_node_mtx);
+//    _motor_right_pwm_pub->publish(pwm_right_msg);
   }
 }
 
