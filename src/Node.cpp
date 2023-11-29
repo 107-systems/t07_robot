@@ -199,6 +199,8 @@ void Node::motor_left_ctrl_loop()
 {
   if (_motor_left_target > 1. * m/s)
     _motor_left_target = 1. * m/s;
+  else if (_motor_left_target < -1. * m/s)
+    _motor_left_target = -1. * m/s;
 
   int16_t const motor_left_pwm_value = _motor_left_target.numerical_value_in(m/s) * 100;
 
@@ -267,6 +269,8 @@ void Node::motor_right_ctrl_loop()
 {
   if (_motor_right_target > 1. * m/s)
     _motor_right_target = 1. * m/s;
+  else if (_motor_right_target < -1. * m/s)
+    _motor_right_target = -1. * m/s;
 
   int16_t const motor_right_pwm_value = _motor_right_target.numerical_value_in(m/s) * 100;
 
