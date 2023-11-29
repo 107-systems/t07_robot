@@ -65,7 +65,7 @@ private:
 
   CanardMicrosecond micros();
 
-  static std::chrono::milliseconds constexpr CTRL_LOOP_RATE{10};
+  static std::chrono::milliseconds constexpr CTRL_LOOP_RATE{50};
 
   rclcpp::QoS _motor_left_qos_profile;
   rclcpp::SubscriptionOptions _motor_left_sub_options;
