@@ -35,18 +35,18 @@ ros2 launch t07_robot robot.py
 | `/motor/right/target` | `std_msgs/Float32`  | Motor right set-point in m/s |
 
 ##### Parameters
-|                      Name                      |       Default        | Description                                                             |
-|:----------------------------------------------:|:--------------------:|-------------------------------------------------------------------------|
-|                  `can_iface`                   |        `can0`        | Network name of CAN bus.                                                |
-|                 `can_node_id`                  |         100          | Cyphal/CAN node id.                                                     |
-|               `motor_left_topic`               | `motor/left/target`  |                                                                         |
-|         `motor_left_topic_deadline_ms`         |         100          |                                                                         |
-|  `motor_left_topic_liveliness_lease_duration`  |         1000         |                                                                         | 
-|            `motor_left_pwm_port_id`            |         600          | Cyphal port ID for CyphalRobotController/CAN motor left PWM messages.   |
-|              `motor_right_topic`               | `motor/right/target` |                                                                         |
-|        `motor_right_topic_deadline_ms`         |         100          |                                                                         |
-| `motor_right_topic_liveliness_lease_duration`  |         1000         |                                                                         | 
-|           `motor_right_pwm_port_id`            |         600          | Cyphal port ID for CyphalRobotController/CAN motor right PWM messages.  |
+|                      Name                      |       Default        | Description                                                            |
+|:----------------------------------------------:|:--------------------:|------------------------------------------------------------------------|
+|                  `can_iface`                   |        `can0`        | Network name of CAN bus.                                               |
+|                 `can_node_id`                  |         100          | Cyphal/CAN node id.                                                    |
+|               `motor_left_topic`               | `motor/left/target`  |                                                                        |
+|         `motor_left_topic_deadline_ms`         |         100          |                                                                        |
+|  `motor_left_topic_liveliness_lease_duration`  |         1000         |                                                                        | 
+|            `motor_left_rpm_port_id`            |         600          | Cyphal port ID for CyphalRobotController/CAN motor left RPM messages.  |
+|              `motor_right_topic`               | `motor/right/target` |                                                                        |
+|        `motor_right_topic_deadline_ms`         |         100          |                                                                        |
+| `motor_right_topic_liveliness_lease_duration`  |         1000         |                                                                        | 
+|           `motor_right_rpm_port_id`            |         600          | Cyphal port ID for CyphalRobotController/CAN motor right RPM messages. |
 
 #### Install dependencies
 * Install `gsl-lite`

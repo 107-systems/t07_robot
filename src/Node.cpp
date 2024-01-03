@@ -18,6 +18,12 @@ namespace t07
 {
 
 /**************************************************************************************
+ * GLOBAL CONSTANTS
+ **************************************************************************************/
+
+static quantity<m> constexpr WHEEL_DIAMETER = (13 * M_PI * cm).in(m);
+
+/**************************************************************************************
  * CTOR/DTOR 
  **************************************************************************************/
 
@@ -148,7 +154,7 @@ void Node::init_motor_left()
   declare_parameter("motor_left_topic", "/motor/left/target");
   declare_parameter("motor_left_topic_deadline_ms", 100);
   declare_parameter("motor_left_topic_liveliness_lease_duration", 1000);
-  declare_parameter("motor_left_pwm_port_id", 600);
+  declare_parameter("motor_left_rpm_port_id", 600);
 
   auto const motor_left_topic = get_parameter("motor_left_topic").as_string();
   auto const motor_left_topic_deadline = std::chrono::milliseconds(get_parameter("motor_left_topic_deadline_ms").as_int());
@@ -190,7 +196,7 @@ void Node::init_motor_left()
     _motor_left_sub_options
   );
 
-  _motor_left_pwm_pub = _node_hdl.create_publisher<uavcan::primitive::scalar::Integer16_1_0>(get_parameter("motor_left_pwm_port_id").as_int(), 1*1000*1000UL);
+  _motor_left_rpm_pub = _node_hdl.create_publisher<uavcan::primitive::scalar::Real32_1_0>(get_parameter("motor_left_rpm_port_id").as_int(), 1*1000*1000UL);
 
   _motor_left_ctrl_loop_timer = create_wall_timer(CTRL_LOOP_RATE, [this]() { this->motor_left_ctrl_loop(); });
 }
@@ -202,14 +208,15 @@ void Node::motor_left_ctrl_loop()
   else if (_motor_left_target < -1. * m/s)
     _motor_left_target = -1. * m/s;
 
-  int16_t const motor_left_pwm_value = _motor_left_target.numerical_value_in(m/s) * 100;
+  auto const motor_left_rps = _motor_left_target / WHEEL_DIAMETER;
+  float const motor_left_rpm = 60. * motor_left_rps.numerical_value_in(Hz);
 
-  uavcan::primitive::scalar::Integer16_1_0 pwm_left_msg;
-  pwm_left_msg.value = motor_left_pwm_value;
+  uavcan::primitive::scalar::Real32_1_0 rpm_left_msg;
+  rpm_left_msg.value = motor_left_rpm;
 
   {
     std::lock_guard <std::mutex> lock(_node_mtx);
-    _motor_left_pwm_pub->publish(pwm_left_msg);
+    _motor_left_rpm_pub->publish(rpm_left_msg);
   }
 }
 
@@ -218,7 +225,7 @@ void Node::init_motor_right()
   declare_parameter("motor_right_topic", "/motor/right/target");
   declare_parameter("motor_right_topic_deadline_ms", 100);
   declare_parameter("motor_right_topic_liveliness_lease_duration", 1000);
-  declare_parameter("motor_right_pwm_port_id", 600);
+  declare_parameter("motor_right_rpm_port_id", 600);
 
   auto const motor_right_topic = get_parameter("motor_right_topic").as_string();
   auto const motor_right_topic_deadline = std::chrono::milliseconds(get_parameter("motor_right_topic_deadline_ms").as_int());
@@ -260,7 +267,7 @@ void Node::init_motor_right()
     _motor_right_sub_options
   );
 
-  _motor_right_pwm_pub = _node_hdl.create_publisher<uavcan::primitive::scalar::Integer16_1_0>(get_parameter("motor_right_pwm_port_id").as_int(), 1*1000*1000UL);
+  _motor_right_rpm_pub = _node_hdl.create_publisher<uavcan::primitive::scalar::Real32_1_0>(get_parameter("motor_right_rpm_port_id").as_int(), 1*1000*1000UL);
 
   _motor_right_ctrl_loop_timer = create_wall_timer(CTRL_LOOP_RATE, [this]() { this->motor_right_ctrl_loop(); });
 }
@@ -272,14 +279,15 @@ void Node::motor_right_ctrl_loop()
   else if (_motor_right_target < -1. * m/s)
     _motor_right_target = -1. * m/s;
 
-  int16_t const motor_right_pwm_value = _motor_right_target.numerical_value_in(m/s) * 100;
+  auto const motor_right_rps = _motor_right_target / WHEEL_DIAMETER;
+  float const motor_right_rpm = 60. * motor_right_rps.numerical_value_in(Hz);
 
-  uavcan::primitive::scalar::Integer16_1_0 pwm_right_msg;
-  pwm_right_msg.value = motor_right_pwm_value;
+  uavcan::primitive::scalar::Real32_1_0 rpm_right_msg;
+  rpm_right_msg.value = motor_right_rpm;
 
   {
     std::lock_guard <std::mutex> lock(_node_mtx);
-    _motor_right_pwm_pub->publish(pwm_right_msg);
+    _motor_right_rpm_pub->publish(rpm_right_msg);
   }
 }
 

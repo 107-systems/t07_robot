@@ -28,7 +28,9 @@
 
 using namespace mp_units;
 using mp_units::si::unit_symbols::m;
+using mp_units::si::unit_symbols::cm;
 using mp_units::si::unit_symbols::s;
+using mp_units::si::unit_symbols::Hz;
 
 namespace t07
 {
@@ -71,7 +73,7 @@ private:
   rclcpp::SubscriptionOptions _motor_left_sub_options;
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr _motor_left_sub;
   quantity<m/s> _motor_left_target;
-  cyphal::Publisher<uavcan::primitive::scalar::Integer16_1_0> _motor_left_pwm_pub;
+  cyphal::Publisher<uavcan::primitive::scalar::Real32_1_0> _motor_left_rpm_pub;
   rclcpp::TimerBase::SharedPtr _motor_left_ctrl_loop_timer;
   void init_motor_left();
   void motor_left_ctrl_loop();
@@ -80,7 +82,7 @@ private:
   rclcpp::SubscriptionOptions _motor_right_sub_options;
   rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr _motor_right_sub;
   quantity<m/s> _motor_right_target;
-  cyphal::Publisher<uavcan::primitive::scalar::Integer16_1_0> _motor_right_pwm_pub;
+  cyphal::Publisher<uavcan::primitive::scalar::Real32_1_0> _motor_right_rpm_pub;
   rclcpp::TimerBase::SharedPtr _motor_right_ctrl_loop_timer;
   void init_motor_right();
   void motor_right_ctrl_loop();

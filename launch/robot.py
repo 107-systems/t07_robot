@@ -16,11 +16,11 @@ def generate_launch_description():
         {'motor_left_topic': '/motor/left/target'},
         {'motor_left_topic_deadline_ms': 200},
         {'motor_left_topic_liveliness_lease_duration': 1000},
-        {'motor_left_pwm_port_id': 100},
+        {'motor_left_rpm_port_id': 1000},
         {'motor_right_topic': '/motor/right/target'},
         {'motor_right_topic_deadline_ms': 200},
         {'motor_right_topic_liveliness_lease_duration': 1000},
-        {'motor_right_pwm_port_id': 101},
+        {'motor_right_rpm_port_id': 1001},
       ]
     )
   ])
