@@ -21,6 +21,8 @@ def generate_launch_description():
         {'motor_right_topic_deadline_ms': 200},
         {'motor_right_topic_liveliness_lease_duration': 1000},
         {'motor_right_rpm_port_id': 1001},
+        {'wheel_left_diameter_mm': 130.0},
+        {'wheel_right_diameter_mm': 130.0},
       ]
     )
   ])

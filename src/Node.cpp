@@ -10,18 +10,14 @@
 
 #include <t07_robot/Node.h>
 
+#include <numbers>
+
 /**************************************************************************************
  * NAMESPACE
  **************************************************************************************/
 
 namespace t07
 {
-
-/**************************************************************************************
- * GLOBAL CONSTANTS
- **************************************************************************************/
-
-static quantity<m> constexpr WHEEL_DIAMETER = (13 * M_PI * cm).in(m);
 
 /**************************************************************************************
  * CTOR/DTOR 
@@ -155,6 +151,7 @@ void Node::init_motor_left()
   declare_parameter("motor_left_topic_deadline_ms", 100);
   declare_parameter("motor_left_topic_liveliness_lease_duration", 1000);
   declare_parameter("motor_left_rpm_port_id", 600);
+  declare_parameter("wheel_left_diameter_mm", 130.0);
 
   auto const motor_left_topic = get_parameter("motor_left_topic").as_string();
   auto const motor_left_topic_deadline = std::chrono::milliseconds(get_parameter("motor_left_topic_deadline_ms").as_int());
@@ -208,7 +205,8 @@ void Node::motor_left_ctrl_loop()
   else if (_motor_left_target < -1. * m/s)
     _motor_left_target = -1. * m/s;
 
-  auto const motor_left_rps = _motor_left_target / WHEEL_DIAMETER;
+  auto const wheel_left_diameter = (static_cast<float>(get_parameter("wheel_left_diameter_mm").as_double()) * mm).in(m);
+  auto const motor_left_rps = _motor_left_target / (std::numbers::pi * wheel_left_diameter);
   float const motor_left_rpm = 60. * motor_left_rps.numerical_value_in(Hz);
 
   uavcan::primitive::scalar::Real32_1_0 rpm_left_msg;
@@ -226,6 +224,7 @@ void Node::init_motor_right()
   declare_parameter("motor_right_topic_deadline_ms", 100);
   declare_parameter("motor_right_topic_liveliness_lease_duration", 1000);
   declare_parameter("motor_right_rpm_port_id", 600);
+  declare_parameter("wheel_right_diameter_mm", 130.0);
 
   auto const motor_right_topic = get_parameter("motor_right_topic").as_string();
   auto const motor_right_topic_deadline = std::chrono::milliseconds(get_parameter("motor_right_topic_deadline_ms").as_int());
@@ -279,7 +278,8 @@ void Node::motor_right_ctrl_loop()
   else if (_motor_right_target < -1. * m/s)
     _motor_right_target = -1. * m/s;
 
-  auto const motor_right_rps = _motor_right_target / WHEEL_DIAMETER;
+  auto const wheel_right_diameter = (static_cast<float>(get_parameter("wheel_right_diameter_mm").as_double()) * mm).in(m);
+  auto const motor_right_rps = _motor_right_target / (std::numbers::pi * wheel_right_diameter);
   float const motor_right_rpm = 60. * motor_right_rps.numerical_value_in(Hz);
 
   uavcan::primitive::scalar::Real32_1_0 rpm_right_msg;

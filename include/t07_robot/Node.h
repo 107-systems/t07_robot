@@ -28,7 +28,7 @@
 
 using namespace mp_units;
 using mp_units::si::unit_symbols::m;
-using mp_units::si::unit_symbols::cm;
+using mp_units::si::unit_symbols::mm;
 using mp_units::si::unit_symbols::s;
 using mp_units::si::unit_symbols::Hz;
 
