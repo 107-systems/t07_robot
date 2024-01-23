@@ -337,6 +337,7 @@ void Node::init_estop()
 /* Stupid hack: somehow the subscription callback with metadata fails spectacularly
  * when used in combination with a [this] capture.
  */
+static bool crc07_is_heartbeat_timeout = false;
 static int crc07_node_id = 0;
 static std::chrono::steady_clock::time_point crc07_prev_cyphal_heartbeat = std::chrono::steady_clock::now();
 
@@ -352,20 +353,30 @@ void Node::init_cyphal_heartbeat_check()
        * then we update the timestamp of the last received heartbeat message.
        */
       if (crc07_node_id == metadata.remote_node_id)
+      {
+        crc07_is_heartbeat_timeout = false;
         crc07_prev_cyphal_heartbeat = std::chrono::steady_clock::now();
+      }
     });
 
   _heartbeat_cyphal_loop_timer = create_wall_timer(
-    std::chrono::milliseconds(1000),
+    std::chrono::milliseconds(100),
     [this]()
     {
       auto const now = std::chrono::steady_clock::now();
       auto const duration_since_last_heartbeat = (now - crc07_prev_cyphal_heartbeat);
 
-      if (std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat) > std::chrono::seconds(5))
+      if (std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat) > std::chrono::seconds(2))
       {
-        RCLCPP_ERROR(get_logger(), "cyphal robot controller 07 offline since %ld seconds.", std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat).count());
+        crc07_is_heartbeat_timeout = true;
+        RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(), 1000UL, "cyphal robot controller 07 offline since %ld seconds.", std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat).count());
       }
+
+      static bool prev_crc07_is_heartbeat_timeout = false;
+      if (!crc07_is_heartbeat_timeout && prev_crc07_is_heartbeat_timeout)
+        RCLCPP_INFO(get_logger(), "cyphal robot controller 07 back online.");
+      prev_crc07_is_heartbeat_timeout = crc07_is_heartbeat_timeout;
+
     });
 }
 
