@@ -94,6 +94,10 @@ private:
   cyphal::Subscription _estop_cyphal_sub;
   bool _is_estop_active;
   void init_estop();
+
+  cyphal::Subscription _heartbeat_cyphal_sub;
+  rclcpp::TimerBase::SharedPtr _heartbeat_cyphal_loop_timer;
+  void init_cyphal_heartbeat_check();
 };
 
 /**************************************************************************************
