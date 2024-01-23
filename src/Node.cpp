@@ -362,7 +362,7 @@ void Node::init_cyphal_heartbeat_check()
       auto const now = std::chrono::steady_clock::now();
       auto const duration_since_last_heartbeat = (now - crc07_prev_cyphal_heartbeat);
 
-      if (std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat) > std::chrono::seconds(10))
+      if (std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat) > std::chrono::seconds(5))
       {
         RCLCPP_ERROR(get_logger(), "cyphal robot controller 07 offline since %ld seconds.", std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat).count());
       }
