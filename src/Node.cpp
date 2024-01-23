@@ -75,6 +75,7 @@ Node::Node()
   init_motor_left();
   init_motor_right();
   init_estop();
+  init_cyphal_heartbeat_check();
 
   RCLCPP_INFO(get_logger(), "%s init complete.", get_name());
 }
@@ -329,6 +330,42 @@ void Node::init_estop()
       std_msgs::msg::Bool estop_msg;
       estop_msg.data = _is_estop_active;
       _estop_pub->publish(estop_msg);
+    });
+}
+
+
+/* Stupid hack: somehow the subscription callback with metadata fails spectacularly
+ * when used in combination with a [this] capture.
+ */
+static int crc07_node_id = 0;
+static std::chrono::steady_clock::time_point crc07_prev_cyphal_heartbeat = std::chrono::steady_clock::now();
+
+void Node::init_cyphal_heartbeat_check()
+{
+  declare_parameter("crc07_can_node_id", 10);
+  crc07_node_id = get_parameter("crc07_can_node_id").as_int();
+
+  _estop_cyphal_sub = _node_hdl.create_subscription<uavcan::node::Heartbeat_1_0>(
+    [](uavcan::node::Heartbeat_1_0 const & /* msg */, cyphal::TransferMetadata const & metadata)
+    {
+      /* If the received heartbeat originates from the CyphalRobotController07
+       * then we update the timestamp of the last received heartbeat message.
+       */
+      if (crc07_node_id == metadata.remote_node_id)
+        crc07_prev_cyphal_heartbeat = std::chrono::steady_clock::now();
+    });
+
+  _heartbeat_cyphal_loop_timer = create_wall_timer(
+    std::chrono::milliseconds(1000),
+    [this]()
+    {
+      auto const now = std::chrono::steady_clock::now();
+      auto const duration_since_last_heartbeat = (now - crc07_prev_cyphal_heartbeat);
+
+      if (std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat) > std::chrono::seconds(10))
+      {
+        RCLCPP_ERROR(get_logger(), "cyphal robot controller 07 offline since %ld seconds.", std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat).count());
+      }
     });
 }
 
