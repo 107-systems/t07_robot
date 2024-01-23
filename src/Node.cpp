@@ -47,7 +47,7 @@ Node::Node()
   declare_parameter("can_node_id", 100);
 
   RCLCPP_INFO(get_logger(),
-              "configuring CAN bus:\n\tDevice: %s\n\tNode Id: %ld",
+              "configuring CAN bus:\n\tDevice:  %s\n\tNode Id: %ld",
               get_parameter("can_iface").as_string().c_str(),
               get_parameter("can_node_id").as_int());
 
@@ -205,7 +205,10 @@ void Node::motor_left_ctrl_loop()
   float const motor_left_rpm = 60. * motor_left_rps.numerical_value_in(Hz);
 
   uavcan::primitive::scalar::Real32_1_0 rpm_left_msg;
-  rpm_left_msg.value = motor_left_rpm;
+  if (!_is_estop_active)
+    rpm_left_msg.value = motor_left_rpm;
+  else
+    rpm_left_msg.value = 0.f;
 
   {
     std::lock_guard <std::mutex> lock(_node_mtx);
@@ -278,7 +281,10 @@ void Node::motor_right_ctrl_loop()
   float const motor_right_rpm = 60. * motor_right_rps.numerical_value_in(Hz);
 
   uavcan::primitive::scalar::Real32_1_0 rpm_right_msg;
-  rpm_right_msg.value = motor_right_rpm;
+  if (!_is_estop_active)
+    rpm_right_msg.value = motor_right_rpm;
+  else
+    rpm_right_msg.value = 0.f;
 
   {
     std::lock_guard <std::mutex> lock(_node_mtx);
