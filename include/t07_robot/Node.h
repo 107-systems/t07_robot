@@ -12,8 +12,10 @@
 
 #include <memory>
 
+#include <rclcpp/qos.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/float32.hpp>
 
 #include <cyphal++/cyphal++.h>
@@ -86,6 +88,12 @@ private:
   rclcpp::TimerBase::SharedPtr _motor_right_ctrl_loop_timer;
   void init_motor_right();
   void motor_right_ctrl_loop();
+
+  rclcpp::QoS _estop_qos_profile;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr _estop_pub;
+  cyphal::Subscription _estop_cyphal_sub;
+  bool _is_estop_active;
+  void init_estop();
 };
 
 /**************************************************************************************

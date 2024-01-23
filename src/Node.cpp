@@ -36,24 +36,18 @@ Node::Node()
             cyphal::Node::DEFAULT_MTU_SIZE}
 , _node_mtx{}
 , _node_start{std::chrono::steady_clock::now()}
-, _motor_left_qos_profile
-{
-  rclcpp::KeepLast(1),
-  rmw_qos_profile_sensor_data
-}
+, _motor_left_qos_profile{rclcpp::KeepLast(1), rmw_qos_profile_sensor_data}
 , _motor_left_target{0. * m/s}
-, _motor_right_qos_profile
-{
-  rclcpp::KeepLast(1),
-  rmw_qos_profile_sensor_data
-}
+, _motor_right_qos_profile{rclcpp::KeepLast(1), rmw_qos_profile_sensor_data}
 , _motor_right_target{0. * m/s}
+, _estop_qos_profile{rclcpp::KeepLast(1), rmw_qos_profile_default}
+, _is_estop_active{false}
 {
   declare_parameter("can_iface", "can0");
   declare_parameter("can_node_id", 100);
 
   RCLCPP_INFO(get_logger(),
-              "configuring CAN bus:\n\tDevice: %s\n\tNode Id: %ld",
+              "configuring CAN bus:\n\tDevice:  %s\n\tNode Id: %ld",
               get_parameter("can_iface").as_string().c_str(),
               get_parameter("can_node_id").as_int());
 
@@ -80,6 +74,7 @@ Node::Node()
 
   init_motor_left();
   init_motor_right();
+  init_estop();
 
   RCLCPP_INFO(get_logger(), "%s init complete.", get_name());
 }
@@ -210,7 +205,10 @@ void Node::motor_left_ctrl_loop()
   float const motor_left_rpm = 60. * motor_left_rps.numerical_value_in(Hz);
 
   uavcan::primitive::scalar::Real32_1_0 rpm_left_msg;
-  rpm_left_msg.value = motor_left_rpm;
+  if (!_is_estop_active)
+    rpm_left_msg.value = motor_left_rpm;
+  else
+    rpm_left_msg.value = 0.f;
 
   {
     std::lock_guard <std::mutex> lock(_node_mtx);
@@ -283,12 +281,55 @@ void Node::motor_right_ctrl_loop()
   float const motor_right_rpm = 60. * motor_right_rps.numerical_value_in(Hz);
 
   uavcan::primitive::scalar::Real32_1_0 rpm_right_msg;
-  rpm_right_msg.value = motor_right_rpm;
+  if (!_is_estop_active)
+    rpm_right_msg.value = motor_right_rpm;
+  else
+    rpm_right_msg.value = 0.f;
 
   {
     std::lock_guard <std::mutex> lock(_node_mtx);
     _motor_right_rpm_pub->publish(rpm_right_msg);
   }
+}
+
+void Node::init_estop()
+{
+  /* Initialize the ROS publisher. */
+  declare_parameter("estop_topic", "/estop/actual");
+  declare_parameter("estop_topic_deadline_ms", 100);
+  declare_parameter("estop_topic_liveliness_lease_duration", 1000);
+
+  auto const estop_topic = get_parameter("estop_topic").as_string();
+  auto const estop_topic_deadline = std::chrono::milliseconds(get_parameter("estop_topic_deadline_ms").as_int());
+  auto const estop_topic_liveliness_lease_duration = std::chrono::milliseconds(get_parameter("estop_topic_liveliness_lease_duration").as_int());
+
+  _estop_qos_profile.deadline(estop_topic_deadline);
+  _estop_qos_profile.liveliness(RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC);
+  _estop_qos_profile.liveliness_lease_duration(estop_topic_liveliness_lease_duration);
+
+  _estop_pub = create_publisher<std_msgs::msg::Bool>(estop_topic, _estop_qos_profile);
+
+  /* Initialize the Cyphal subscriber. */
+  declare_parameter("estop_port_id", 100);
+
+  _estop_cyphal_sub = _node_hdl.create_subscription<uavcan::primitive::scalar::Bit_1_0>(
+    get_parameter("estop_port_id").as_int(),
+    [this](uavcan::primitive::scalar::Bit_1_0 const & msg)
+    {
+      _is_estop_active = (msg.value == false);
+
+      if (_is_estop_active)
+        RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(), 5*1000UL, "emergency stop is active.");
+
+      static bool prev_is_estop_active = false;
+      if (!_is_estop_active && prev_is_estop_active)
+        RCLCPP_INFO(get_logger(), "emergency stop was released.");
+      prev_is_estop_active = _is_estop_active;
+
+      std_msgs::msg::Bool estop_msg;
+      estop_msg.data = _is_estop_active;
+      _estop_pub->publish(estop_msg);
+    });
 }
 
 /**************************************************************************************

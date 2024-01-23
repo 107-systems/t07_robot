@@ -23,6 +23,10 @@ def generate_launch_description():
         {'motor_right_rpm_port_id': 1001},
         {'wheel_left_diameter_mm': 130.0},
         {'wheel_right_diameter_mm': 130.0},
+        {'estop_topic': '/estop/actual'},
+        {'estop_topic_deadline_ms': 100},
+        {'estop_topic_liveliness_lease_duration': 1000},
+        {'estop_port_id': 100},
       ]
     )
   ])
