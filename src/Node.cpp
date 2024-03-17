@@ -293,6 +293,12 @@ void Node::motor_right_ctrl_loop()
   }
 }
 
+/* Stupid hack: somehow the subscription callback with metadata fails spectacularly
+ * when used in combination with a [this] capture.
+ */
+static bool crc07_is_heartbeat_timeout = false;
+
+
 void Node::init_estop()
 {
   /* Initialize the ROS publisher. */
@@ -332,12 +338,6 @@ void Node::init_estop()
       _estop_pub->publish(estop_msg);
     });
 }
-
-
-/* Stupid hack: somehow the subscription callback with metadata fails spectacularly
- * when used in combination with a [this] capture.
- */
-static bool crc07_is_heartbeat_timeout = false;
 static int crc07_node_id = 0;
 static std::chrono::steady_clock::time_point crc07_prev_cyphal_heartbeat = std::chrono::steady_clock::now();
 
