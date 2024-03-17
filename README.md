@@ -20,7 +20,18 @@ colcon build --packages-select t07_robot
 ```bash
 cd $COLCON_WS
 . install/setup.bash
-ros2 launch t07_robot robot.py
+```
+* [T07W(heels)](https://github.com/107-systems/T07) (2WD tricycle configuration)
+```bash
+ros2 launch t07_robot t07.py
+```
+* [T07W(heels)](https://github.com/107-systems/T07) (4WD configuration)
+```bash
+ros2 launch t07_robot t07_4wd.py
+```
+* [T07T(racks)](https://github.com/107-systems/T07_threaded) (Tracked configuration)
+```bash
+ros2 launch t07_robot t07_tracked.py
 ```
 
 #### Interface Documentation
