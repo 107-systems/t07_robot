@@ -293,12 +293,6 @@ void Node::motor_right_ctrl_loop()
   }
 }
 
-/* Stupid hack: somehow the subscription callback with metadata fails spectacularly
- * when used in combination with a [this] capture.
- */
-static bool crc07_is_heartbeat_timeout = false;
-
-
 void Node::init_estop()
 {
   /* Initialize the ROS publisher. */
@@ -338,13 +332,26 @@ void Node::init_estop()
       _estop_pub->publish(estop_msg);
     });
 }
-static int crc07_node_id = 0;
-static std::chrono::steady_clock::time_point crc07_prev_cyphal_heartbeat = std::chrono::steady_clock::now();
+
+/* Stupid hack: somehow the subscription callback with metadata fails spectacularly
+ * when used in combination with a [this] capture.
+ */
+typedef std::tuple<CanardNodeID, std::chrono::steady_clock::time_point, bool, bool> CyphalHeartbeatMonitorData;
+static std::list<CyphalHeartbeatMonitorData> crc07_heartbeat_monitor_list;
 
 void Node::init_cyphal_heartbeat_check()
 {
-  declare_parameter("crc07_can_node_id", 10);
-  crc07_node_id = get_parameter("crc07_can_node_id").as_int();
+  declare_parameter("crc07_can_node_id", std::vector<long int>{});
+  auto const crc07_node_id_array = get_parameter("crc07_can_node_id").as_integer_array();
+
+  for (auto const node_id : crc07_node_id_array)
+  {
+    auto const monitor_data = std::make_tuple(node_id,
+                                              std::chrono::steady_clock::now(),
+                                              false,
+                                              false);
+    crc07_heartbeat_monitor_list.push_back(monitor_data);
+  }
 
   _estop_cyphal_sub = _node_hdl.create_subscription<uavcan::node::Heartbeat_1_0>(
     [](uavcan::node::Heartbeat_1_0 const & /* msg */, cyphal::TransferMetadata const & metadata)
@@ -352,31 +359,41 @@ void Node::init_cyphal_heartbeat_check()
       /* If the received heartbeat originates from the CyphalRobotController07
        * then we update the timestamp of the last received heartbeat message.
        */
-      if (crc07_node_id == metadata.remote_node_id)
+      auto const iter = std::find_if(crc07_heartbeat_monitor_list.begin(),
+                                     crc07_heartbeat_monitor_list.end(),
+                                     [metadata](CyphalHeartbeatMonitorData const & data)
+                                     {
+                                        auto const [node_id, prev_cyphal_heartbeat, is_heartbeat_timeout, prev_is_heartbeat_timeout] = data;
+                                        return (node_id == metadata.remote_node_id);
+                                     });
+
+      if (iter != crc07_heartbeat_monitor_list.end())
       {
-        crc07_is_heartbeat_timeout = false;
-        crc07_prev_cyphal_heartbeat = std::chrono::steady_clock::now();
+        auto & [node_id, prev_cyphal_heartbeat, is_heartbeat_timeout, prev_is_heartbeat_timeout] = *iter;
+        is_heartbeat_timeout = false;
+        prev_cyphal_heartbeat = std::chrono::steady_clock::now();
       }
     });
 
   _heartbeat_cyphal_loop_timer = create_wall_timer(
-    std::chrono::milliseconds(100),
+    std::chrono::milliseconds(1000),
     [this]()
     {
-      auto const now = std::chrono::steady_clock::now();
-      auto const duration_since_last_heartbeat = (now - crc07_prev_cyphal_heartbeat);
-
-      if (std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat) > std::chrono::seconds(2))
+      for (auto & [node_id, prev_cyphal_heartbeat, is_heartbeat_timeout, prev_is_heartbeat_timeout] : crc07_heartbeat_monitor_list)
       {
-        crc07_is_heartbeat_timeout = true;
-        RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(), 1000UL, "cyphal robot controller 07 offline since %ld seconds.", std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat).count());
+        auto const now = std::chrono::steady_clock::now();
+        auto const duration_since_last_heartbeat = (now - prev_cyphal_heartbeat);
+
+        if (std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat) > std::chrono::seconds(2))
+        {
+          is_heartbeat_timeout = true;
+          RCLCPP_ERROR(get_logger(), "cyphal robot controller 07 (%d) offline since %ld seconds.", static_cast<int>(node_id), std::chrono::duration_cast<std::chrono::seconds>(duration_since_last_heartbeat).count());
+        }
+
+        if (!is_heartbeat_timeout && prev_is_heartbeat_timeout)
+          RCLCPP_INFO(get_logger(), "cyphal robot controller 07 (%d) back online.", static_cast<int>(node_id));
+        prev_is_heartbeat_timeout = is_heartbeat_timeout;
       }
-
-      static bool prev_crc07_is_heartbeat_timeout = false;
-      if (!crc07_is_heartbeat_timeout && prev_crc07_is_heartbeat_timeout)
-        RCLCPP_INFO(get_logger(), "cyphal robot controller 07 back online.");
-      prev_crc07_is_heartbeat_timeout = crc07_is_heartbeat_timeout;
-
     });
 }
 
