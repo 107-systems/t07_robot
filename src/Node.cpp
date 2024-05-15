@@ -69,13 +69,13 @@ Node::Node()
                                          _node_hdl.spinSome();
                                        });
 
-  init_cyphal_heartbeat();
-  init_cyphal_node_info();
+  //init_cyphal_heartbeat();
+  //init_cyphal_node_info();
 
   init_motor_left();
   init_motor_right();
   init_estop();
-  init_cyphal_heartbeat_check();
+  //init_cyphal_heartbeat_check();
 
   RCLCPP_INFO(get_logger(), "%s init complete.", get_name());
 }
